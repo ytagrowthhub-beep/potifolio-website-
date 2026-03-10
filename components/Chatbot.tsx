@@ -130,8 +130,8 @@ export function Chatbot() {
       const decoder = new TextDecoder()
       let buffer = ''
       let fullResponse = ''
-      let action: { type: string; value: string } | undefined
-      let interactive: { type: string; options?: string[] } | undefined
+      let action: Message['action']
+      let interactive: Message['interactive']
 
       if (reader) {
         try {
@@ -162,8 +162,12 @@ export function Chatbot() {
                   }
 
                   if (data.type === 'done') {
-                    if (data.action) action = data.action
-                    if (data.interactive) interactive = data.interactive
+                    if (data.action) {
+                      action = data.action as Message['action']
+                    }
+                    if (data.interactive) {
+                      interactive = data.interactive as Message['interactive']
+                    }
                     
                     // Final update with action and interactive elements
                     setMessages((prev) =>
@@ -172,8 +176,8 @@ export function Chatbot() {
                           ? {
                               ...msg,
                               content: fullResponse,
-                              action,
-                              interactive,
+                              ...(action && { action }),
+                              ...(interactive && { interactive }),
                             }
                           : msg
                       )

@@ -9,6 +9,9 @@ import { generateContext, findRelevantKnowledge } from '@/lib/chatbot-knowledge'
  * For now, uses a rule-based system with the knowledge base
  */
 
+type ActionType = { type: 'link' | 'form' | 'email'; value: string }
+type InteractiveType = { type: 'services-dropdown' | 'timeline-dropdown' | 'question'; options?: string[] }
+
 export async function POST(request: NextRequest) {
   try {
     const { message, conversationHistory } = await request.json()
@@ -25,8 +28,8 @@ export async function POST(request: NextRequest) {
     const openaiApiKey = process.env.OPENAI_API_KEY
 
     let response: string
-    let action: { type: string; value: string } | undefined
-    let interactive: { type: string; options?: string[] } | undefined
+    let action: ActionType | undefined
+    let interactive: InteractiveType | undefined
 
     const lowerMessage = message.toLowerCase()
     
@@ -79,7 +82,7 @@ export async function POST(request: NextRequest) {
     // IMPORTANT: Answer their question first, then add follow-ups
     // Extract action from relevant knowledge
     if (relevantKnowledge.length > 0 && relevantKnowledge[0].action) {
-      action = relevantKnowledge[0].action
+      action = relevantKnowledge[0].action as ActionType
     }
 
     // Add follow-up questions and interactive elements AFTER answering their question
