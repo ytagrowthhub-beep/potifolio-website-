@@ -4,20 +4,29 @@ import { prisma } from '@/lib/prisma'
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://ayorfetech.com'
 
-  // Fetch all projects for dynamic routes
-  const projects = await prisma.project.findMany({
-    select: {
-      slug: true,
-      updatedAt: true,
-    },
-  })
+  // Fetch all projects for dynamic routes with error handling
+  let projectRoutes: MetadataRoute.Sitemap = []
+  
+  try {
+    if (process.env.DATABASE_URL) {
+      const projects = await prisma.project.findMany({
+        select: {
+          slug: true,
+          updatedAt: true,
+        },
+      })
 
-  const projectRoutes = projects.map((project) => ({
-    url: `${baseUrl}/projects/${project.slug}`,
-    lastModified: project.updatedAt,
-    changeFrequency: 'monthly' as const,
-    priority: 0.8,
-  }))
+      projectRoutes = projects.map((project) => ({
+        url: `${baseUrl}/projects/${project.slug}`,
+        lastModified: project.updatedAt,
+        changeFrequency: 'monthly' as const,
+        priority: 0.8,
+      }))
+    }
+  } catch (error) {
+    console.error('Error fetching projects for sitemap:', error)
+    // Continue with empty project routes if database is not available
+  }
 
   return [
     {
