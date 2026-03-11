@@ -13,6 +13,7 @@
     "db:studio": "prisma studio",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
+    "db:seed": "ts-node --compiler-options {\"module\":\"CommonJS\"} prisma/seed.ts",
     "generate-favicons": "node scripts/generate-favicons.js"
   },
   "dependencies": {
@@ -47,12 +48,9 @@
   },
   "overrides": {
     "rimraf": "^5.0.0",
-    "glob": "^11.0.0",
+    "glob": "^11.0.1",
     "inflight": "npm:@npmcli/inflight@^1.0.6",
     "@humanwhocodes/config-array": "npm:@eslint/config-array@^0.18.0",
     "@humanwhocodes/object-schema": "npm:@eslint/object-schema@^3.0.0"
-  },
-  "prisma": {
-    "seed": "ts-node --compiler-options {\"module\":\"CommonJS\"} prisma/seed.ts"
   }
 }
