@@ -1,9 +1,10 @@
 {
   "buildCommand": "prisma generate && next build",
-  "installCommand": "npm install --legacy-peer-deps",
+  "installCommand": "npm install --legacy-peer-deps --loglevel=error",
   "framework": "nextjs",
   "env": {
     "SKIP_ENV_VALIDATION": "true",
-    "NEXT_TELEMETRY_DISABLED": "1"
+    "NEXT_TELEMETRY_DISABLED": "1",
+    "PRISMA_SKIP_POSTINSTALL_GENERATE": "false"
   }
 }
