@@ -15,9 +15,6 @@
     "db:migrate": "prisma migrate dev",
     "generate-favicons": "node scripts/generate-favicons.js"
   },
-  "prisma": {
-    "seed": "ts-node --compiler-options {\"module\":\"CommonJS\"} prisma/seed.ts"
-  },
   "dependencies": {
     "@hookform/resolvers": "^3.3.0",
     "@prisma/client": "^6.1.0",
