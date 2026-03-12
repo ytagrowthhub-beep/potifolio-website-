@@ -502,14 +502,12 @@ export function Chatbot() {
                           backgroundColor: colors.primaryLight + '10',
                         }}
                         onHoverStart={(e) => {
-                          if (e.currentTarget) {
-                            e.currentTarget.style.backgroundColor = colors.primaryLight + '20'
-                          }
+                          const target = e.currentTarget as HTMLElement
+                          target.style.backgroundColor = colors.primaryLight + '20'
                         }}
                         onHoverEnd={(e) => {
-                          if (e.currentTarget) {
-                            e.currentTarget.style.backgroundColor = colors.primaryLight + '10'
-                          }
+                          const target = e.currentTarget as HTMLElement
+                          target.style.backgroundColor = colors.primaryLight + '10'
                         }}
                       >
                         {suggestion.text}
