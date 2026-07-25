@@ -1,5 +1,8 @@
 import type { PortfolioProject } from './project-types'
 
+/** Default live demo — override with POCKECT_SMS_LIVE_URL / POCKET_SMS_LIVE_URL */
+export const DEFAULT_POCKET_SMS_LIVE_URL = 'https://pocket-sms-link.vercel.app/'
+
 function isValidLiveUrl(url: string | null | undefined): url is string {
   if (!url || typeof url !== 'string') return false
   try {
@@ -16,6 +19,7 @@ const POCKECT_SMS_REPO_NAMES = [
   'pockect-sms-website',
   'pocket-sms-website',
   'pocketsms',
+  'pocket-sms-link',
 ]
 
 export function isPockectSmsProject(project: {
@@ -30,75 +34,122 @@ export function isPockectSmsProject(project: {
   )
 }
 
-export function getCuratedPockectSmsProject(
-  githubUsername: string
-): PortfolioProject {
+function fixPocketSmsTitle(title: string): string {
+  return title.replace(/pockect/gi, 'Pocket')
+}
+
+export function getPockectSmsLiveUrl(): string {
   const liveUrlRaw =
     process.env.POCKECT_SMS_LIVE_URL ||
     process.env.POCKET_SMS_LIVE_URL ||
-    null
-  const liveUrl =
-    liveUrlRaw && isValidLiveUrl(liveUrlRaw) ? liveUrlRaw.trim() : null
+    DEFAULT_POCKET_SMS_LIVE_URL
+  return isValidLiveUrl(liveUrlRaw)
+    ? liveUrlRaw.trim().replace(/\/$/, '') + '/'
+    : DEFAULT_POCKET_SMS_LIVE_URL
+}
+
+function getSiteScreenshot(liveUrl: string): string {
+  const normalized = liveUrl.replace(/\/$/, '') + '/'
+  return `https://v1.screenshot.11ty.dev/${encodeURIComponent(normalized)}/large/`
+}
+
+/** Apply live URL + homepage screenshot onto an existing Pocket SMS project */
+export function enrichPockectSmsProject(
+  project: PortfolioProject
+): PortfolioProject {
+  if (!isPockectSmsProject(project)) return project
+
+  const liveUrl = getPockectSmsLiveUrl()
+  const homepageThumb = getSiteScreenshot(liveUrl)
+
+  return {
+    ...project,
+    title: fixPocketSmsTitle(project.title),
+    liveUrl,
+    thumbnail: homepageThumb,
+    previewImage: homepageThumb,
+    hasLiveDemo: true,
+    featured: true,
+    outcome: 'Live website available for preview and use.',
+    images: [
+      {
+        id: `${project.id}-home-preview`,
+        url: homepageThumb,
+        alt: `${fixPocketSmsTitle(project.title)} homepage preview`,
+      },
+      ...project.images.filter((img) => img.url !== homepageThumb),
+    ],
+  }
+}
+
+export function getCuratedPockectSmsProject(
+  githubUsername: string
+): PortfolioProject {
+  const liveUrl = getPockectSmsLiveUrl()
+  const homepageThumb = getSiteScreenshot(liveUrl)
   const repoName = 'pockect-sms'
-  const thumbnail = `https://opengraph.githubassets.com/1/${githubUsername}/${repoName}`
 
   return {
     id: 'curated-pockect-sms',
     slug: 'pockect-sms',
-    title: 'Pockect SMS',
+    title: 'Pocket SMS',
     description:
-      'SMS messaging website — a web platform for sending and managing text messages with a clean, user-friendly interface.',
+      'Virtual SMS platform for sending and receiving texts online — instant numbers, real-time inbox, and secure messaging for verification and business use.',
     longDescription:
-      '<p>Pockect SMS is a web-based SMS platform designed for reliable message delivery and an intuitive user experience.</p>',
+      '<p>Pocket SMS (TextFlow) is a web platform for virtual phone numbers and SMS messaging. Users can get numbers from 50+ countries, manage a real-time inbox, and integrate via API for verification and business communication.</p>',
     problem:
-      'Provide a simple, accessible way to manage SMS communications through the web.',
+      'Businesses and individuals need private, accessible virtual numbers for verification and messaging without relying on a personal phone.',
     solution:
-      'Built a responsive web application focused on clarity, speed, and ease of use for SMS workflows.',
-    outcome: liveUrl
-      ? 'Live website available for preview and use.'
-      : 'Project showcased on portfolio with source available on GitHub.',
+      'Built a responsive web app with instant virtual numbers, a chat-style SMS inbox, transparent pricing, and a developer-friendly API.',
+    outcome: 'Live website available for preview and use.',
     features: [
-      'Responsive web interface',
-      'SMS messaging workflow',
-      'Clean, modern UI',
-      'Production-ready deployment',
+      'Instant virtual numbers (50+ countries)',
+      'Real-time SMS inbox',
+      'Secure, private messaging',
+      'Developer-friendly API',
+      'Transparent pricing plans',
     ],
-    techStack: ['HTML', 'CSS', 'JavaScript'],
+    techStack: ['React', 'TypeScript', 'Tailwind CSS'],
     category: 'web-app',
     liveUrl,
     githubUrl: `https://github.com/${githubUsername}/${repoName}`,
-    thumbnail,
-    previewImage: thumbnail,
+    thumbnail: homepageThumb,
+    previewImage: homepageThumb,
     images: [
       {
         id: 'curated-pockect-sms-1',
-        url: thumbnail,
-        alt: 'Pockect SMS preview',
+        url: homepageThumb,
+        alt: 'Pocket SMS homepage preview',
       },
     ],
     createdAt: new Date('2025-01-01'),
     updatedAt: new Date(),
     featured: true,
     repoName,
-    topics: ['sms', 'web-app'],
+    topics: ['sms', 'web-app', 'saas'],
     stars: 0,
-    hasLiveDemo: Boolean(liveUrl),
+    hasLiveDemo: true,
   }
 }
 
+/** Ensure Pocket SMS appears in project lists (home + /projects), even if the GitHub repo is missing */
 export function mergeCuratedFeaturedProjects(
   projects: PortfolioProject[],
   githubUsername: string
 ): PortfolioProject[] {
-  if (projects.some(isPockectSmsProject)) {
-    return projects
+  const withEnrichment = projects.map(enrichPockectSmsProject)
+
+  if (withEnrichment.some(isPockectSmsProject)) {
+    return withEnrichment
   }
-  return [getCuratedPockectSmsProject(githubUsername), ...projects]
+
+  return [getCuratedPockectSmsProject(githubUsername), ...withEnrichment]
 }
 
 export const DEFAULT_FEATURED_PINNED_REPOS = [
   'pockect-sms',
   'pocket-sms',
+  'pocket-sms-link',
   'pockect-sms-website',
   'pocket-sms-website',
   'pocketsms',

@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "next lint",
     "postinstall": "prisma generate",
-    "prebuild": "npm audit fix --audit-level=moderate || true",
+    "prebuild": "node -e \"try{require('child_process').execSync('npm audit fix --audit-level=moderate',{stdio:'inherit'})}catch(e){}\"",
     "db:push": "prisma db push",
     "db:studio": "prisma studio",
     "db:generate": "prisma generate",

@@ -21,14 +21,28 @@ const BUILTIN_OVERRIDES: Record<string, ProjectOverride> = {
       'Professional digital agency website for Paultecnology — web development, marketing, and brand services.',
   },
   'pockect-sms': {
-    liveUrl: process.env.POCKECT_SMS_LIVE_URL || process.env.POCKET_SMS_LIVE_URL,
+    liveUrl:
+      process.env.POCKECT_SMS_LIVE_URL ||
+      process.env.POCKET_SMS_LIVE_URL ||
+      'https://pocket-sms-link.vercel.app/',
     description:
-      'SMS messaging website — a web platform for sending and managing text messages with a clean, user-friendly interface.',
+      'Virtual SMS platform for sending and receiving texts online — instant numbers, real-time inbox, and secure messaging.',
   },
   'pocket-sms': {
-    liveUrl: process.env.POCKECT_SMS_LIVE_URL || process.env.POCKET_SMS_LIVE_URL,
+    liveUrl:
+      process.env.POCKECT_SMS_LIVE_URL ||
+      process.env.POCKET_SMS_LIVE_URL ||
+      'https://pocket-sms-link.vercel.app/',
     description:
-      'SMS messaging website — a web platform for sending and managing text messages with a clean, user-friendly interface.',
+      'Virtual SMS platform for sending and receiving texts online — instant numbers, real-time inbox, and secure messaging.',
+  },
+  'pocket-sms-link': {
+    liveUrl:
+      process.env.POCKECT_SMS_LIVE_URL ||
+      process.env.POCKET_SMS_LIVE_URL ||
+      'https://pocket-sms-link.vercel.app/',
+    description:
+      'Virtual SMS platform for sending and receiving texts online — instant numbers, real-time inbox, and secure messaging.',
   },
 }
 
@@ -55,6 +69,13 @@ export function getProjectOverride(repoName: string): ProjectOverride {
   }
   if (key === 'paultecnology-potifolio' && process.env.PAULTECNOLOGY_LIVE_URL) {
     singleEnv.liveUrl = process.env.PAULTECNOLOGY_LIVE_URL
+  }
+  if (
+    (key === 'pockect-sms' || key === 'pocket-sms') &&
+    (process.env.POCKECT_SMS_LIVE_URL || process.env.POCKET_SMS_LIVE_URL)
+  ) {
+    singleEnv.liveUrl =
+      process.env.POCKECT_SMS_LIVE_URL || process.env.POCKET_SMS_LIVE_URL
   }
 
   return {

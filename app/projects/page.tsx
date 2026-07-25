@@ -20,7 +20,7 @@ export default async function ProjectsPage() {
         showFilters={true}
         showViewAll={false}
         title="All Projects"
-        subtitle="A comprehensive showcase synced from GitHub — filter by category or open a live demo"
+        subtitle="Browse completed websites and apps — open a live preview or view full project details"
         githubUsername={githubUsername}
       />
     </div>

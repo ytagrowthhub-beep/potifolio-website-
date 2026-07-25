@@ -103,7 +103,7 @@ function githubHeaders(): HeadersInit {
     Accept: 'application/vnd.github+json',
     'X-GitHub-Api-Version': '2022-11-28',
   }
-  const token = process.env.GITHUB_TOKEN
+  const token = process.env.GITHUB_TOKEN || process.env.GH_TOKEN
   if (token) {
     return { ...headers, Authorization: `Bearer ${token}` }
   }
@@ -335,13 +335,25 @@ async function resolveLiveUrl(
   if (override.liveUrl && isValidHttpUrl(override.liveUrl)) {
     const normalized = normalizeUrl(override.liveUrl)
     const envUrls = process.env.GITHUB_PROJECT_LIVE_URLS
+    const repoKey = repo.name.toLowerCase()
     const hasEnvOverride =
-      Boolean(process.env.YOUNG_WEARS_LIVE_URL && repo.name === 'young-wears') ||
+      Boolean(process.env.YOUNG_WEARS_LIVE_URL && repoKey === 'young-wears') ||
       Boolean(
         process.env.PAULTECNOLOGY_LIVE_URL &&
-          repo.name === 'paultecnology-potifolio'
+          repoKey === 'paultecnology-potifolio'
       ) ||
-      Boolean(envUrls?.includes(repo.name))
+      Boolean(
+        override.liveUrl &&
+          (repoKey === 'pockect-sms' ||
+            repoKey === 'pocket-sms' ||
+            repoKey === 'pocket-sms-link' ||
+            isPockectSmsProject({
+              repoName: repo.name,
+              slug: slugify(repo.name),
+              title: repo.name,
+            }))
+      ) ||
+      Boolean(envUrls?.toLowerCase().includes(repoKey))
     if (hasEnvOverride || (await urlIsReachable(normalized))) {
       return normalized
     }
@@ -678,6 +690,10 @@ async function enrichRepo(
 
 function sortProjects(projects: PortfolioProject[]): PortfolioProject[] {
   return [...projects].sort((a, b) => {
+    const pinA = isPockectSmsProject(a) ? 1 : 0
+    const pinB = isPockectSmsProject(b) ? 1 : 0
+    if (pinA !== pinB) return pinB - pinA
+
     if (a.hasLiveDemo !== b.hasLiveDemo) {
       return a.hasLiveDemo ? -1 : 1
     }
@@ -692,7 +708,7 @@ export const fetchGitHubProjects = cache(async (): Promise<PortfolioProject[]> =
   )
 
   if (!repos?.length) {
-    return []
+    return mergeCuratedFeaturedProjects([], username)
   }
 
   const eligible = repos.filter((repo) => !shouldExcludeRepo(repo))
@@ -701,7 +717,10 @@ export const fetchGitHubProjects = cache(async (): Promise<PortfolioProject[]> =
   )
 
   return sortProjects(
-    enriched.filter((p): p is PortfolioProject => p !== null)
+    mergeCuratedFeaturedProjects(
+      enriched.filter((p): p is PortfolioProject => p !== null),
+      username
+    )
   )
 })
 
@@ -712,7 +731,11 @@ export async function getGitHubProjectBySlug(
   const match = projects.find((p) => p.slug === slug)
   if (match) return match
 
-  if (slug === 'pockect-sms' || slug === 'pocket-sms') {
+  if (
+    slug === 'pockect-sms' ||
+    slug === 'pocket-sms' ||
+    slug === 'pocket-sms-link'
+  ) {
     return getCuratedPockectSmsProject(getGitHubUsername())
   }
 
@@ -720,7 +743,7 @@ export async function getGitHubProjectBySlug(
 }
 
 export async function getFeaturedGitHubProjects(
-  limit = 6
+  limit?: number
 ): Promise<PortfolioProject[]> {
   const username = getGitHubUsername()
   const pinnedFromEnv = (process.env.FEATURED_PINNED_REPOS || '')
@@ -734,6 +757,10 @@ export async function getFeaturedGitHubProjects(
   projects = projects.filter((p) => !isExcludedFromFeatured(p))
   projects = mergeCuratedFeaturedProjects(projects, username)
   projects = sortFeaturedWithPinned(projects, pinnedRepos)
+
+  if (limit == null || limit <= 0) {
+    return projects
+  }
 
   return projects.slice(0, limit)
 }

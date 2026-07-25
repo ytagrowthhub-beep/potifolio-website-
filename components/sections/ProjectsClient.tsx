@@ -4,15 +4,22 @@ import { motion, useInView } from 'framer-motion'
 import { useRef, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { ArrowRight, Github } from 'lucide-react'
+import { Swiper, SwiperSlide } from 'swiper/react'
+import { Autoplay, Navigation, Pagination } from 'swiper/modules'
 import { useTheme } from '@/lib/theme-context'
 import type { PortfolioProject, ProjectCategory } from '@/lib/project-types'
 import { ProjectFilters } from '@/components/projects/ProjectFilters'
 import { ProjectCard } from '@/components/projects/ProjectCard'
 
+import 'swiper/css'
+import 'swiper/css/navigation'
+import 'swiper/css/pagination'
+
 interface ProjectsClientProps {
   projects: PortfolioProject[]
   showFilters?: boolean
   showViewAll?: boolean
+  carousel?: boolean
   title?: string
   subtitle?: string
   limit?: number
@@ -23,6 +30,7 @@ export function ProjectsClient({
   projects,
   showFilters = false,
   showViewAll = true,
+  carousel = false,
   title = 'Featured Projects',
   subtitle = 'A showcase of my recent work — synced automatically from GitHub',
   limit,
@@ -45,18 +53,26 @@ export function ProjectsClient({
   }, [projects, activeFilter, limit])
 
   const filterCounts = useMemo(() => {
-    const counts: Partial<Record<ProjectCategory, number>> = { all: projects.length }
+    const counts: Partial<Record<ProjectCategory, number>> = {
+      all: projects.length,
+    }
     for (const project of projects) {
       counts[project.category] = (counts[project.category] || 0) + 1
     }
     return counts
   }, [projects])
 
+  const enableLoop = displayProjects.length > 3
+
   return (
     <section
       id="projects"
       ref={ref}
-      className="bg-white py-20 md:py-32"
+      className="projects-section bg-white py-20 md:py-32"
+      style={{
+        ['--projects-accent' as string]: colors.primary,
+        ['--projects-accent-light' as string]: colors.primaryLight,
+      }}
     >
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
@@ -83,7 +99,10 @@ export function ProjectsClient({
             className="mt-3 inline-flex items-center gap-1.5 text-sm text-gray-500 transition-colors hover:text-gray-800"
           >
             <Github size={14} aria-hidden />
-            <span>Synced from @{githubUsername}</span>
+            <span>
+              Synced from @{githubUsername}
+              {projects.length > 0 ? ` · ${projects.length} projects` : ''}
+            </span>
           </a>
         </motion.div>
 
@@ -103,6 +122,45 @@ export function ProjectsClient({
                 : 'No projects match this filter. Try another category.'}
             </p>
           </div>
+        ) : carousel ? (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+            transition={{ duration: 0.5, delay: 0.15 }}
+            className="projects-carousel relative"
+          >
+            <Swiper
+              modules={[Autoplay, Navigation, Pagination]}
+              autoplay={{
+                delay: 4000,
+                disableOnInteraction: false,
+                pauseOnMouseEnter: true,
+              }}
+              loop={enableLoop}
+              navigation
+              pagination={{ clickable: true }}
+              spaceBetween={24}
+              slidesPerView={1}
+              breakpoints={{
+                640: { slidesPerView: 2 },
+                1024: { slidesPerView: 3 },
+              }}
+              watchOverflow
+              className="!pb-14"
+            >
+              {displayProjects.map((project, index) => (
+                <SwiperSlide key={project.id} className="!h-auto">
+                  <div className="h-full px-1 py-2">
+                    <ProjectCard
+                      project={project}
+                      index={index}
+                      isInView={isInView}
+                    />
+                  </div>
+                </SwiperSlide>
+              ))}
+            </Swiper>
+          </motion.div>
         ) : (
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 lg:gap-8">
             {displayProjects.map((project, index) => (

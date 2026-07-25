@@ -57,6 +57,38 @@
   align-items: center;
 }
 
+/* Home featured projects carousel */
+.projects-carousel .swiper-slide {
+  align-items: stretch;
+  height: auto;
+}
+
+.projects-carousel .swiper-button-prev,
+.projects-carousel .swiper-button-next {
+  color: var(--projects-accent, var(--color-primary));
+  width: 2.5rem;
+  height: 2.5rem;
+  background: white;
+  border-radius: 9999px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+}
+
+.projects-carousel .swiper-button-prev:after,
+.projects-carousel .swiper-button-next:after {
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.projects-carousel .swiper-pagination-bullet {
+  background: var(--projects-accent-light, var(--color-primary-light));
+  opacity: 0.45;
+}
+
+.projects-carousel .swiper-pagination-bullet-active {
+  background: var(--projects-accent, var(--color-primary));
+  opacity: 1;
+}
+
 /* Smooth scrolling */
 html {
   scroll-behavior: smooth;
