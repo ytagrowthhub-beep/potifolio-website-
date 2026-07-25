@@ -6,6 +6,14 @@ const nextConfig = {
         protocol: 'https',
         hostname: '**',
       },
+      {
+        protocol: 'https',
+        hostname: 'v1.screenshot.11ty.dev',
+      },
+      {
+        protocol: 'https',
+        hostname: 'opengraph.githubassets.com',
+      },
     ],
   },
   experimental: {

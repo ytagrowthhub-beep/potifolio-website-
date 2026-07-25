@@ -1,31 +1,23 @@
 import { MetadataRoute } from 'next'
-import { prisma } from '@/lib/prisma'
+import { getGitHubProjectSlugs, githubProjectsRevalidate } from '@/lib/github-projects'
+
+export const revalidate = githubProjectsRevalidate
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://ayorfetech.com'
 
-  // Fetch all projects for dynamic routes with error handling
   let projectRoutes: MetadataRoute.Sitemap = []
-  
-  try {
-    if (process.env.DATABASE_URL) {
-      const projects = await prisma.project.findMany({
-        select: {
-          slug: true,
-          updatedAt: true,
-        },
-      })
 
-      projectRoutes = projects.map((project) => ({
-        url: `${baseUrl}/projects/${project.slug}`,
-        lastModified: project.updatedAt,
-        changeFrequency: 'monthly' as const,
-        priority: 0.8,
-      }))
-    }
+  try {
+    const slugs = await getGitHubProjectSlugs()
+    projectRoutes = slugs.map((slug) => ({
+      url: `${baseUrl}/projects/${slug}`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly' as const,
+      priority: 0.8,
+    }))
   } catch (error) {
-    console.error('Error fetching projects for sitemap:', error)
-    // Continue with empty project routes if database is not available
+    console.error('Error fetching GitHub projects for sitemap:', error)
   }
 
   return [
